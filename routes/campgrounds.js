@@ -1,24 +1,21 @@
 const express = require("express");
 const router = express.Router();
-const methodOverride = require("method-override");
+const multer=require('multer')
+const {storage}=require('../cloudinary')
+const upload=multer({storage})
 
 const campgrounds = require("../controllers/campground");
-
 const catchAsync = require("../utils/catchAsync");
-
 const { isLoggedIn, validateCampground, isAuthor } = require("../middleware");
-const { campgroundSchema } = require("../schemas");
-
-router.use(express.urlencoded({ extended: true }));
-router.use(methodOverride("_method"));
 
 
 router.route('/')
     .get(catchAsync(campgrounds.index))
     .post(
         isLoggedIn,
+        upload.array('image'),
         validateCampground,
-        catchAsync(campgroundSchema.createCampground)
+        catchAsync(campgrounds.createCampground)
     )
 
 router.get("/new", isLoggedIn, campgrounds.renderNewForm);
@@ -28,6 +25,7 @@ router.route('/:id')
     .put(
         isLoggedIn,
         isAuthor,
+        upload.array('image'),
         validateCampground,
         catchAsync(campgrounds.editCampground)
     )
